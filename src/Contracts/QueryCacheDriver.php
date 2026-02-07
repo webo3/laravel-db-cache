@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Contracts;
+namespace webO3\LaravelDbCache\Contracts;
 
 interface QueryCacheDriver
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Drivers;
+namespace webO3\LaravelDbCache\Drivers;
 
-use webO3\LaravelQueryCache\Contracts\QueryCacheDriver;
-use webO3\LaravelQueryCache\Utils\SqlTableExtractor;
+use webO3\LaravelDbCache\Contracts\QueryCacheDriver;
+use webO3\LaravelDbCache\Utils\SqlTableExtractor;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
@@ -22,13 +22,13 @@ class RedisQueryCacheDriver implements QueryCacheDriver
     /**
      * Redis Set key to track all cached query keys
      */
-    private const KEYS_SET = 'query_cache:keys';
+    private const KEYS_SET = 'db_cache:keys';
 
     /**
      * Redis Set key prefix for table-based index (inverted index)
-     * Format: query_cache:table:{table_name} -> Set of query cache keys
+     * Format: db_cache:table:{table_name} -> Set of query cache keys
      */
-    private const TABLE_INDEX_PREFIX = 'query_cache:table:';
+    private const TABLE_INDEX_PREFIX = 'db_cache:table:';
 
     /**
      * Configuration
@@ -54,7 +54,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
         $this->config = array_merge([
             'ttl' => 300, // 5 minutes default
             'log_enabled' => false,
-            'redis_connection' => 'query_cache',
+            'redis_connection' => 'db_cache',
         ], $config);
 
         // Get direct Redis connection

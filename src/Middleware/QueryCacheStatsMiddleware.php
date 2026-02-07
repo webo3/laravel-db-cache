@@ -1,8 +1,8 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Middleware;
+namespace webO3\LaravelDbCache\Middleware;
 
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
 use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class QueryCacheStatsMiddleware
         $response = $next($request);
 
         // Log statistics if enabled in config
-        if (config('query-cache.log_enabled', false)) {
+        if (config('db-cache.log_enabled', false)) {
             $this->logCacheStats($request);
         }
 
@@ -44,7 +44,7 @@ class QueryCacheStatsMiddleware
     private function logCacheStats($request): void
     {
         try {
-            $connections = Arr::wrap(config('query-cache.connection', 'mysql'));
+            $connections = Arr::wrap(config('db-cache.connection', 'mysql'));
 
             foreach ($connections as $connectionName) {
                 $connection = DB::connection($connectionName);

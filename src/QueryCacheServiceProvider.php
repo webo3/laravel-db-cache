@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache;
+namespace webO3\LaravelDbCache;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
@@ -12,7 +12,7 @@ class QueryCacheServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/query-cache.php', 'query-cache');
+        $this->mergeConfigFrom(__DIR__ . '/../config/db-cache.php', 'db-cache');
 
         // Always register the factory - it checks the enabled flag per-connection
         // at creation time, falling back to the default connection when disabled.
@@ -28,23 +28,23 @@ class QueryCacheServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/query-cache.php' => config_path('query-cache.php'),
-            ], 'query-cache-config');
+                __DIR__ . '/../config/db-cache.php' => config_path('db-cache.php'),
+            ], 'db-cache-config');
         }
 
-        // Inject query_cache config into the database connection config
-        if (config('query-cache.enabled', false)) {
-            $connections = Arr::wrap(config('query-cache.connection', 'mysql'));
+        // Inject db_cache config into the database connection config
+        if (config('db-cache.enabled', false)) {
+            $connections = Arr::wrap(config('db-cache.connection', 'mysql'));
 
             foreach ($connections as $connection) {
                 config([
-                    "database.connections.{$connection}.query_cache" => [
+                    "database.connections.{$connection}.db_cache" => [
                         'enabled' => true,
-                        'driver' => config('query-cache.driver', 'array'),
-                        'ttl' => config('query-cache.ttl', 180),
-                        'max_size' => config('query-cache.max_size', 1000),
-                        'log_enabled' => config('query-cache.log_enabled', false),
-                        'redis_connection' => config('query-cache.redis_connection', 'query_cache'),
+                        'driver' => config('db-cache.driver', 'array'),
+                        'ttl' => config('db-cache.ttl', 180),
+                        'max_size' => config('db-cache.max_size', 1000),
+                        'log_enabled' => config('db-cache.log_enabled', false),
+                        'redis_connection' => config('db-cache.redis_connection', 'db_cache'),
                     ],
                 ]);
             }

@@ -1,9 +1,9 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests;
+namespace webO3\LaravelDbCache\Tests;
 
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use webO3\LaravelQueryCache\QueryCacheServiceProvider;
+use webO3\LaravelDbCache\QueryCacheServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
 {
@@ -67,7 +67,7 @@ abstract class TestCase extends OrchestraTestCase
 
         // Configure Redis for testing
         $app['config']->set('database.redis.client', env('REDIS_CLIENT', 'predis'));
-        $app['config']->set('database.redis.query_cache', [
+        $app['config']->set('database.redis.db_cache', [
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'port' => env('REDIS_PORT', '6379'),
@@ -76,10 +76,10 @@ abstract class TestCase extends OrchestraTestCase
             'read_timeout' => 2.0,
         ]);
 
-        // Configure cache store for query_cache
-        $app['config']->set('cache.stores.query_cache', [
+        // Configure cache store for db_cache
+        $app['config']->set('cache.stores.db_cache', [
             'driver' => 'redis',
-            'connection' => 'query_cache',
+            'connection' => 'db_cache',
         ]);
     }
 }

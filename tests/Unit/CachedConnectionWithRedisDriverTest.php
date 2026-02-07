@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use Illuminate\Support\Facades\Redis;
 
@@ -32,7 +32,7 @@ class CachedConnectionWithRedisDriverTest extends AbstractCachedConnectionTest
     protected function isDriverAvailable(): bool
     {
         try {
-            $redis = Redis::connection('query_cache');
+            $redis = Redis::connection('db_cache');
             $redis->ping();
             return true;
         } catch (\Exception|\Error $e) {

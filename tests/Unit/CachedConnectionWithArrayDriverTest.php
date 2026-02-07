@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 /**
  * Test cached database connection using Array driver

@@ -1,15 +1,15 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\DB;
-use webO3\LaravelQueryCache\CachedConnectionFactory;
-use webO3\LaravelQueryCache\CachedMySQLConnection;
-use webO3\LaravelQueryCache\CachedPostgresConnection;
-use webO3\LaravelQueryCache\CachedSQLiteConnection;
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\CachedConnectionFactory;
+use webO3\LaravelDbCache\CachedMySQLConnection;
+use webO3\LaravelDbCache\CachedPostgresConnection;
+use webO3\LaravelDbCache\CachedSQLiteConnection;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 class CachedConnectionFactoryTest extends TestCase
 {
@@ -17,8 +17,8 @@ class CachedConnectionFactoryTest extends TestCase
     public function creates_cached_mysql_connection_when_enabled()
     {
         config([
-            'database.connections.mysql.query_cache.enabled' => true,
-            'database.connections.mysql.query_cache.driver' => 'array',
+            'database.connections.mysql.db_cache.enabled' => true,
+            'database.connections.mysql.db_cache.driver' => 'array',
         ]);
         app('db')->purge('mysql');
 
@@ -36,8 +36,8 @@ class CachedConnectionFactoryTest extends TestCase
     public function creates_cached_sqlite_connection_when_enabled()
     {
         config([
-            'database.connections.sqlite.query_cache.enabled' => true,
-            'database.connections.sqlite.query_cache.driver' => 'array',
+            'database.connections.sqlite.db_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'array',
         ]);
         app('db')->purge('sqlite');
 
@@ -50,8 +50,8 @@ class CachedConnectionFactoryTest extends TestCase
     public function creates_cached_postgres_connection_when_enabled()
     {
         config([
-            'database.connections.pgsql.query_cache.enabled' => true,
-            'database.connections.pgsql.query_cache.driver' => 'array',
+            'database.connections.pgsql.db_cache.enabled' => true,
+            'database.connections.pgsql.db_cache.driver' => 'array',
         ]);
         app('db')->purge('pgsql');
 
@@ -68,7 +68,7 @@ class CachedConnectionFactoryTest extends TestCase
     public function creates_regular_connection_when_cache_disabled()
     {
         config([
-            'database.connections.sqlite.query_cache.enabled' => false,
+            'database.connections.sqlite.db_cache.enabled' => false,
         ]);
         app('db')->purge('sqlite');
 
@@ -77,10 +77,10 @@ class CachedConnectionFactoryTest extends TestCase
     }
 
     #[Test]
-    public function creates_regular_connection_when_no_query_cache_config()
+    public function creates_regular_connection_when_no_db_cache_config()
     {
         config([
-            'database.connections.sqlite.query_cache' => null,
+            'database.connections.sqlite.db_cache' => null,
         ]);
         app('db')->purge('sqlite');
 

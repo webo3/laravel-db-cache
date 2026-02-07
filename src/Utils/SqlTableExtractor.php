@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Utils;
+namespace webO3\LaravelDbCache\Utils;
 
 /**
  * Utility class to extract table names from SQL queries

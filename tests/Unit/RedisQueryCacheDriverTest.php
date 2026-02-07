@@ -1,11 +1,11 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
-use webO3\LaravelQueryCache\Drivers\RedisQueryCacheDriver;
+use webO3\LaravelDbCache\Drivers\RedisQueryCacheDriver;
 use Illuminate\Support\Facades\Redis;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 /**
  * Test Redis Query Cache Driver
@@ -35,14 +35,14 @@ class RedisQueryCacheDriverTest extends TestCase
 
         // Skip tests if Redis is not available
         try {
-            $this->redis = Redis::connection('query_cache');
+            $this->redis = Redis::connection('db_cache');
             $this->redis->ping();
 
             // Create driver only after verifying Redis connection
             $this->driver = new RedisQueryCacheDriver([
                 'ttl' => 300,
                 'log_enabled' => false,
-                'redis_connection' => 'query_cache',
+                'redis_connection' => 'db_cache',
             ]);
 
             // Clear cache before each test
@@ -152,7 +152,7 @@ class RedisQueryCacheDriverTest extends TestCase
         $this->assertEquals(['users'], $cached['tables']);
 
         // Verify key is indexed in table-specific set
-        $tableIndexKey = 'query_cache:table:users';
+        $tableIndexKey = 'db_cache:table:users';
         $keysInTableIndex = $this->redis->smembers($tableIndexKey);
         $this->assertContains($key, $keysInTableIndex);
     }
@@ -175,7 +175,7 @@ class RedisQueryCacheDriverTest extends TestCase
         $this->assertContains($key2, $allKeys);
 
         // Verify using direct Redis SMEMBERS
-        $keysInSet = $this->redis->smembers('query_cache:keys');
+        $keysInSet = $this->redis->smembers('db_cache:keys');
         $this->assertContains($key1, $keysInSet);
         $this->assertContains($key2, $keysInSet);
     }
@@ -195,7 +195,7 @@ class RedisQueryCacheDriverTest extends TestCase
         $this->assertFalse($this->driver->has($key));
 
         // Verify removed from tracking Set
-        $keysInSet = $this->redis->smembers('query_cache:keys');
+        $keysInSet = $this->redis->smembers('db_cache:keys');
         $this->assertNotContains($key, $keysInSet);
     }
 
@@ -247,7 +247,7 @@ class RedisQueryCacheDriverTest extends TestCase
         $this->assertEquals(0, $statsAfter['cached_queries_count']);
 
         // Verify tracking Set is empty
-        $keysInSet = $this->redis->smembers('query_cache:keys');
+        $keysInSet = $this->redis->smembers('db_cache:keys');
         $this->assertEmpty($keysInSet);
     }
 

@@ -1,6 +1,6 @@
-# Laravel Query Cache
+# Laravel DB Cache
 
-Transparent query-level database caching for Laravel with smart table-based invalidation.
+Transparent database query caching for Laravel — zero code changes, smart invalidation, multi-driver.
 
 This package intercepts SQL queries at the connection level, automatically caching `SELECT` results and invalidating them when mutations (`INSERT`, `UPDATE`, `DELETE`, etc.) affect related tables. No changes to your application code required.
 
@@ -30,7 +30,7 @@ This package intercepts SQL queries at the connection level, automatically cachi
 ## Installation
 
 ```bash
-composer require webo3/laravel-query-cache
+composer require webo3/laravel-db-cache
 ```
 
 The service provider is auto-discovered. No manual registration needed.
@@ -38,10 +38,10 @@ The service provider is auto-discovered. No manual registration needed.
 ### Publish the configuration
 
 ```bash
-php artisan vendor:publish --tag=query-cache-config
+php artisan vendor:publish --tag=db-cache-config
 ```
 
-This creates `config/query-cache.php` in your application.
+This creates `config/db-cache.php` in your application.
 
 ## Configuration
 
@@ -55,7 +55,7 @@ This creates `config/query-cache.php` in your application.
 | `DB_QUERY_CACHE_MAX_SIZE` | `1000` | Max cached queries (array driver only) |
 | `DB_QUERY_CACHE_LOG_ENABLED` | `false` | Enable cache hit/miss/invalidation logging |
 | `DB_QUERY_CACHE_CONNECTION` | `mysql` | Database connection name(s) to cache |
-| `DB_QUERY_CACHE_REDIS_CONNECTION` | `query_cache` | Redis connection name (redis driver only) |
+| `DB_QUERY_CACHE_REDIS_CONNECTION` | `db_cache` | Redis connection name (redis driver only) |
 
 ### Quick Start
 
@@ -91,7 +91,7 @@ Persistent cache shared across all workers and requests. Uses a two-tier archite
 ```env
 DB_QUERY_CACHE_DRIVER=redis
 DB_QUERY_CACHE_TTL=180
-DB_QUERY_CACHE_REDIS_CONNECTION=query_cache
+DB_QUERY_CACHE_REDIS_CONNECTION=db_cache
 ```
 
 #### Redis Connection Setup
@@ -104,7 +104,7 @@ Add a dedicated Redis connection in your `config/database.php`:
 
     // ... your other connections ...
 
-    'query_cache' => [
+    'db_cache' => [
         'url' => env('REDIS_URL'),
         'host' => env('REDIS_HOST', '127.0.0.1'),
         'port' => env('REDIS_PORT', '6379'),
@@ -119,10 +119,10 @@ Using a dedicated database (e.g. `2`) keeps query cache data isolated from your 
 
 #### TLS/SSL (AWS ElastiCache, Valkey)
 
-For remote Redis connections that require TLS (e.g. AWS ElastiCache, Valkey), add `scheme` and `context` options to your `query_cache` connection:
+For remote Redis connections that require TLS (e.g. AWS ElastiCache, Valkey), add `scheme` and `context` options to your `db_cache` connection:
 
 ```php
-'query_cache' => [
+'db_cache' => [
     'scheme' => env('REDIS_SCHEME', 'tcp'), // Use 'tls' for SSL connections
     'host' => env('REDIS_HOST', '127.0.0.1'),
     'port' => env('REDIS_PORT', '6379'),
@@ -186,7 +186,7 @@ In Laravel 11+ (`bootstrap/app.php`):
 
 ```php
 ->withMiddleware(function (Middleware $middleware) {
-    $middleware->append(\webO3\LaravelQueryCache\Middleware\QueryCacheStatsMiddleware::class);
+    $middleware->append(\webO3\LaravelDbCache\Middleware\QueryCacheStatsMiddleware::class);
 })
 ```
 
@@ -195,7 +195,7 @@ In Laravel 9/10 (`app/Http/Kernel.php`):
 ```php
 protected $middleware = [
     // ...
-    \webO3\LaravelQueryCache\Middleware\QueryCacheStatsMiddleware::class,
+    \webO3\LaravelDbCache\Middleware\QueryCacheStatsMiddleware::class,
 ];
 ```
 
@@ -203,10 +203,10 @@ The middleware only logs when `DB_QUERY_CACHE_LOG_ENABLED=true`. Log entries inc
 
 ## Multi-Connection Support
 
-You can enable query caching on multiple database connections simultaneously. In your `config/query-cache.php` (or via environment), pass an array of connection names:
+You can enable query caching on multiple database connections simultaneously. In your `config/db-cache.php` (or via environment), pass an array of connection names:
 
 ```php
-// config/query-cache.php
+// config/db-cache.php
 'connection' => ['mysql', 'pgsql'],
 ```
 
@@ -241,7 +241,7 @@ DB::connection('mysql')->enableQueryCache();
 You can also use the `CachedConnection` interface for type checking:
 
 ```php
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
 
 $connection = DB::connection();
 if ($connection instanceof CachedConnection) {
@@ -266,7 +266,7 @@ if ($connection instanceof CachedConnection) {
 You can create your own cache driver by implementing the `QueryCacheDriver` interface:
 
 ```php
-use webO3\LaravelQueryCache\Contracts\QueryCacheDriver;
+use webO3\LaravelDbCache\Contracts\QueryCacheDriver;
 
 class MyCustomDriver implements QueryCacheDriver
 {

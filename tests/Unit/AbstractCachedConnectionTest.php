@@ -1,10 +1,10 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use Illuminate\Database\Connection;
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 /**
  * Abstract test class for cached database connections
@@ -56,16 +56,16 @@ abstract class AbstractCachedConnectionTest extends TestCase
 
         // Enable caching with the specified driver
         config([
-            'query-cache.enabled' => true,
-            'query-cache.driver' => $this->getDriverName(),
-            'query-cache.ttl' => 300,
-            'query-cache.max_size' => 1000,
-            'query-cache.log_enabled' => false,
-            "database.connections.{$conn}.query_cache.enabled" => true,
-            "database.connections.{$conn}.query_cache.driver" => $this->getDriverName(),
-            "database.connections.{$conn}.query_cache.ttl" => 300,
-            "database.connections.{$conn}.query_cache.max_size" => 1000,
-            "database.connections.{$conn}.query_cache.log_enabled" => false,
+            'db-cache.enabled' => true,
+            'db-cache.driver' => $this->getDriverName(),
+            'db-cache.ttl' => 300,
+            'db-cache.max_size' => 1000,
+            'db-cache.log_enabled' => false,
+            "database.connections.{$conn}.db_cache.enabled" => true,
+            "database.connections.{$conn}.db_cache.driver" => $this->getDriverName(),
+            "database.connections.{$conn}.db_cache.ttl" => 300,
+            "database.connections.{$conn}.db_cache.max_size" => 1000,
+            "database.connections.{$conn}.db_cache.log_enabled" => false,
         ]);
 
         // Purge existing connection to force reconnection with new config
@@ -157,7 +157,7 @@ abstract class AbstractCachedConnectionTest extends TestCase
     // BASIC CACHING TESTS
     // ===================================
 
-    public function test_clear_query_cache_empties_cache()
+    public function test_clear_db_cache_empties_cache()
     {
         // Arrange - Execute a query to populate cache
         $this->getCachedConnection()->select('SELECT * FROM test_cache_products LIMIT 1');

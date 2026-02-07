@@ -1,9 +1,9 @@
 <?php
 
-namespace webO3\LaravelQueryCache;
+namespace webO3\LaravelDbCache;
 
-use webO3\LaravelQueryCache\Concerns\CachesQueries;
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Concerns\CachesQueries;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
 use Illuminate\Database\MySqlConnection;
 
 class CachedMySQLConnection extends MySqlConnection implements CachedConnection

@@ -95,6 +95,6 @@ return [
     |
     */
 
-    'redis_connection' => env('DB_QUERY_CACHE_REDIS_CONNECTION', 'query_cache'),
+    'redis_connection' => env('DB_QUERY_CACHE_REDIS_CONNECTION', 'db_cache'),
 
 ];

@@ -1,9 +1,9 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Drivers;
+namespace webO3\LaravelDbCache\Drivers;
 
-use webO3\LaravelQueryCache\Contracts\QueryCacheDriver;
-use webO3\LaravelQueryCache\Utils\SqlTableExtractor;
+use webO3\LaravelDbCache\Contracts\QueryCacheDriver;
+use webO3\LaravelDbCache\Utils\SqlTableExtractor;
 use Illuminate\Support\Facades\Log;
 
 /**

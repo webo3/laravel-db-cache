@@ -1,10 +1,10 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
 use Illuminate\Database\Connection;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 /**
  * Tests to verify save()/refresh() timing behavior with cache invalidation.
@@ -22,16 +22,16 @@ class CachedMySQLConnectionTimingTest extends TestCase
 
         // Enable caching with array driver for testing
         config([
-            'query-cache.enabled' => true,
-            'query-cache.driver' => 'array',
-            'query-cache.ttl' => 300,
-            'query-cache.max_size' => 1000,
-            'query-cache.log_enabled' => false,
-            'database.connections.mysql.query_cache.enabled' => true,
-            'database.connections.mysql.query_cache.driver' => 'array',
-            'database.connections.mysql.query_cache.ttl' => 300,
-            'database.connections.mysql.query_cache.max_size' => 1000,
-            'database.connections.mysql.query_cache.log_enabled' => false,
+            'db-cache.enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.ttl' => 300,
+            'db-cache.max_size' => 1000,
+            'db-cache.log_enabled' => false,
+            'database.connections.mysql.db_cache.enabled' => true,
+            'database.connections.mysql.db_cache.driver' => 'array',
+            'database.connections.mysql.db_cache.ttl' => 300,
+            'database.connections.mysql.db_cache.max_size' => 1000,
+            'database.connections.mysql.db_cache.log_enabled' => false,
         ]);
 
         app('db')->purge('mysql');

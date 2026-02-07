@@ -1,12 +1,12 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Concerns;
+namespace webO3\LaravelDbCache\Concerns;
 
-use webO3\LaravelQueryCache\Contracts\QueryCacheDriver;
-use webO3\LaravelQueryCache\Drivers\ArrayQueryCacheDriver;
-use webO3\LaravelQueryCache\Drivers\NullQueryCacheDriver;
-use webO3\LaravelQueryCache\Drivers\RedisQueryCacheDriver;
-use webO3\LaravelQueryCache\Utils\SqlTableExtractor;
+use webO3\LaravelDbCache\Contracts\QueryCacheDriver;
+use webO3\LaravelDbCache\Drivers\ArrayQueryCacheDriver;
+use webO3\LaravelDbCache\Drivers\NullQueryCacheDriver;
+use webO3\LaravelDbCache\Drivers\RedisQueryCacheDriver;
+use webO3\LaravelDbCache\Utils\SqlTableExtractor;
 use Closure;
 use Illuminate\Support\Facades\Log;
 
@@ -208,7 +208,7 @@ trait CachesQueries
      */
     private function createCacheDriver(array $config): QueryCacheDriver
     {
-        $cacheConfig = $config['query_cache'] ?? [];
+        $cacheConfig = $config['db_cache'] ?? [];
         $driver = $cacheConfig['driver'] ?? 'array';
 
         return match ($driver) {
@@ -226,7 +226,7 @@ trait CachesQueries
      */
     private function isCachingEnabled(): bool
     {
-        return (bool)($this->config['query_cache']['enabled'] ?? false);
+        return (bool)($this->config['db_cache']['enabled'] ?? false);
     }
 
     /**
@@ -238,7 +238,7 @@ trait CachesQueries
      */
     private function logCacheHit(string $query, array $bindings): void
     {
-        if ($this->config['query_cache']['log_enabled'] ?? false) {
+        if ($this->config['db_cache']['log_enabled'] ?? false) {
             Log::debug('Query Cache: HIT', [
                 'caller' => $this->getCallerInfo(),
                 'query' => $query,
@@ -256,7 +256,7 @@ trait CachesQueries
      */
     private function logCacheMiss(string $query, array $bindings): void
     {
-        if ($this->config['query_cache']['log_enabled'] ?? false) {
+        if ($this->config['db_cache']['log_enabled'] ?? false) {
             Log::debug('Query Cache: MISS', [
                 'caller' => $this->getCallerInfo(),
                 'query' => $query,
@@ -319,7 +319,7 @@ trait CachesQueries
      */
     public function enableQueryCache(): void
     {
-        $this->config['query_cache']['enabled'] = true;
+        $this->config['db_cache']['enabled'] = true;
     }
 
     /**
@@ -327,6 +327,6 @@ trait CachesQueries
      */
     public function disableQueryCache(): void
     {
-        $this->config['query_cache']['enabled'] = false;
+        $this->config['db_cache']['enabled'] = false;
     }
 }

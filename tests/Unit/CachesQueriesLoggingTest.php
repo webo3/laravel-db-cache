@@ -1,12 +1,12 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 /**
  * Tests for CachesQueries logging methods (logCacheHit, logCacheMiss, getCallerInfo)
@@ -22,15 +22,15 @@ class CachesQueriesLoggingTest extends TestCase
 
         // Enable caching WITH logging
         config([
-            'query-cache.enabled' => true,
-            'query-cache.driver' => 'array',
-            'query-cache.log_enabled' => true,
-            'query-cache.connection' => 'sqlite',
-            'database.connections.sqlite.query_cache.enabled' => true,
-            'database.connections.sqlite.query_cache.driver' => 'array',
-            'database.connections.sqlite.query_cache.ttl' => 300,
-            'database.connections.sqlite.query_cache.max_size' => 1000,
-            'database.connections.sqlite.query_cache.log_enabled' => true,
+            'db-cache.enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.log_enabled' => true,
+            'db-cache.connection' => 'sqlite',
+            'database.connections.sqlite.db_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'array',
+            'database.connections.sqlite.db_cache.ttl' => 300,
+            'database.connections.sqlite.db_cache.max_size' => 1000,
+            'database.connections.sqlite.db_cache.log_enabled' => true,
         ]);
 
         app('db')->purge('sqlite');
@@ -151,7 +151,7 @@ class CachesQueriesLoggingTest extends TestCase
     {
         // Reconfigure with logging disabled
         config([
-            'database.connections.sqlite.query_cache.log_enabled' => false,
+            'database.connections.sqlite.db_cache.log_enabled' => false,
         ]);
         app('db')->purge('sqlite');
 
@@ -180,8 +180,8 @@ class CachesQueriesLoggingTest extends TestCase
     public function cache_driver_null_creates_null_driver()
     {
         config([
-            'database.connections.sqlite.query_cache.driver' => 'null',
-            'database.connections.sqlite.query_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'null',
+            'database.connections.sqlite.db_cache.enabled' => true,
         ]);
         app('db')->purge('sqlite');
 
@@ -198,8 +198,8 @@ class CachesQueriesLoggingTest extends TestCase
     public function cache_driver_unknown_falls_back_to_null()
     {
         config([
-            'database.connections.sqlite.query_cache.driver' => 'unknown_driver',
-            'database.connections.sqlite.query_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'unknown_driver',
+            'database.connections.sqlite.db_cache.enabled' => true,
         ]);
         app('db')->purge('sqlite');
 

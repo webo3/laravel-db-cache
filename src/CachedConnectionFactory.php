@@ -1,6 +1,6 @@
 <?php
 
-namespace webO3\LaravelQueryCache;
+namespace webO3\LaravelDbCache;
 
 use Illuminate\Database\Connectors\ConnectionFactory;
 
@@ -25,7 +25,7 @@ class CachedConnectionFactory extends ConnectionFactory
      */
     protected function createConnection($driver, $connection, $database, $prefix = '', array $config = [])
     {
-        if ($config['query_cache']['enabled'] ?? false) {
+        if ($config['db_cache']['enabled'] ?? false) {
             return match ($driver) {
                 'mysql' => new CachedMySQLConnection($connection, $database, $prefix, $config),
                 'pgsql' => new CachedPostgresConnection($connection, $database, $prefix, $config),

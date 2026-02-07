@@ -1,15 +1,15 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use webO3\LaravelQueryCache\Contracts\CachedConnection;
-use webO3\LaravelQueryCache\Middleware\QueryCacheStatsMiddleware;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Contracts\CachedConnection;
+use webO3\LaravelDbCache\Middleware\QueryCacheStatsMiddleware;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 class QueryCacheStatsMiddlewareTest extends TestCase
 {
@@ -24,7 +24,7 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     #[Test]
     public function handle_passes_request_to_next_middleware()
     {
-        config(['query-cache.log_enabled' => false]);
+        config(['db-cache.log_enabled' => false]);
 
         $request = Request::create('/test', 'GET');
         $expectedResponse = new Response('OK');
@@ -39,7 +39,7 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     #[Test]
     public function handle_does_not_log_when_logging_disabled()
     {
-        config(['query-cache.log_enabled' => false]);
+        config(['db-cache.log_enabled' => false]);
 
         Log::shouldReceive('info')->never();
 
@@ -56,15 +56,15 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     {
         // Enable caching and logging
         config([
-            'query-cache.enabled' => true,
-            'query-cache.log_enabled' => true,
-            'query-cache.driver' => 'array',
-            'query-cache.connection' => 'sqlite',
-            'database.connections.sqlite.query_cache.enabled' => true,
-            'database.connections.sqlite.query_cache.driver' => 'array',
-            'database.connections.sqlite.query_cache.ttl' => 300,
-            'database.connections.sqlite.query_cache.max_size' => 1000,
-            'database.connections.sqlite.query_cache.log_enabled' => false,
+            'db-cache.enabled' => true,
+            'db-cache.log_enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.connection' => 'sqlite',
+            'database.connections.sqlite.db_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'array',
+            'database.connections.sqlite.db_cache.ttl' => 300,
+            'database.connections.sqlite.db_cache.max_size' => 1000,
+            'database.connections.sqlite.db_cache.log_enabled' => false,
         ]);
 
         app('db')->purge('sqlite');
@@ -104,15 +104,15 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     public function handle_does_not_log_when_no_cached_queries()
     {
         config([
-            'query-cache.enabled' => true,
-            'query-cache.log_enabled' => true,
-            'query-cache.driver' => 'array',
-            'query-cache.connection' => 'sqlite',
-            'database.connections.sqlite.query_cache.enabled' => true,
-            'database.connections.sqlite.query_cache.driver' => 'array',
-            'database.connections.sqlite.query_cache.ttl' => 300,
-            'database.connections.sqlite.query_cache.max_size' => 1000,
-            'database.connections.sqlite.query_cache.log_enabled' => false,
+            'db-cache.enabled' => true,
+            'db-cache.log_enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.connection' => 'sqlite',
+            'database.connections.sqlite.db_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'array',
+            'database.connections.sqlite.db_cache.ttl' => 300,
+            'database.connections.sqlite.db_cache.max_size' => 1000,
+            'database.connections.sqlite.db_cache.log_enabled' => false,
         ]);
 
         app('db')->purge('sqlite');
@@ -135,8 +135,8 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     {
         // Configure with a connection that will fail when accessed
         config([
-            'query-cache.log_enabled' => true,
-            'query-cache.connection' => 'nonexistent_connection',
+            'db-cache.log_enabled' => true,
+            'db-cache.connection' => 'nonexistent_connection',
         ]);
 
         Log::shouldReceive('warning')
@@ -159,15 +159,15 @@ class QueryCacheStatsMiddlewareTest extends TestCase
     public function handle_supports_multiple_connections()
     {
         config([
-            'query-cache.enabled' => true,
-            'query-cache.log_enabled' => true,
-            'query-cache.driver' => 'array',
-            'query-cache.connection' => ['sqlite'],
-            'database.connections.sqlite.query_cache.enabled' => true,
-            'database.connections.sqlite.query_cache.driver' => 'array',
-            'database.connections.sqlite.query_cache.ttl' => 300,
-            'database.connections.sqlite.query_cache.max_size' => 1000,
-            'database.connections.sqlite.query_cache.log_enabled' => false,
+            'db-cache.enabled' => true,
+            'db-cache.log_enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.connection' => ['sqlite'],
+            'database.connections.sqlite.db_cache.enabled' => true,
+            'database.connections.sqlite.db_cache.driver' => 'array',
+            'database.connections.sqlite.db_cache.ttl' => 300,
+            'database.connections.sqlite.db_cache.max_size' => 1000,
+            'database.connections.sqlite.db_cache.log_enabled' => false,
         ]);
 
         app('db')->purge('sqlite');

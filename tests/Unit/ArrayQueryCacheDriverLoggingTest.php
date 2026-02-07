@@ -1,11 +1,11 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\Log;
-use webO3\LaravelQueryCache\Drivers\ArrayQueryCacheDriver;
-use webO3\LaravelQueryCache\Tests\TestCase;
+use webO3\LaravelDbCache\Drivers\ArrayQueryCacheDriver;
+use webO3\LaravelDbCache\Tests\TestCase;
 
 /**
  * Tests for ArrayQueryCacheDriver logging paths (log_enabled=true).

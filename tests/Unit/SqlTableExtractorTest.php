@@ -1,10 +1,10 @@
 <?php
 
-namespace webO3\LaravelQueryCache\Tests\Unit;
+namespace webO3\LaravelDbCache\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use webO3\LaravelQueryCache\Utils\SqlTableExtractor;
+use webO3\LaravelDbCache\Utils\SqlTableExtractor;
 
 /**
  * Unit tests for SqlTableExtractor
