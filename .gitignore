@@ -1,3 +1,4 @@
+.DS_Store
 /vendor/
 composer.lock
 .phpunit.result.cache
@@ -8,4 +9,5 @@ composer.lock
 *.swp
 *.swo
 coverage-report/
+phpunit.xml
 .env
