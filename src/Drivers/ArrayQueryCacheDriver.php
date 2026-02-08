@@ -62,13 +62,11 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
         // Extract tables eagerly for O(1) invalidation via inverted index
         $tables = SqlTableExtractor::extract($query);
 
-        $now = microtime(true);
         self::$cache[$key] = [
             'result' => $result,
             'tables' => $tables,
             'query' => $query,
             'executed_at' => $executedAt,
-            'last_accessed' => $now,
             'hits' => 0
         ];
 
@@ -193,7 +191,11 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
     {
         if (isset(self::$cache[$key])) {
             self::$cache[$key]['hits']++;
-            self::$cache[$key]['last_accessed'] = microtime(true);
+
+            // Move to end of array to maintain LRU order without sorting
+            $entry = self::$cache[$key];
+            unset(self::$cache[$key]);
+            self::$cache[$key] = $entry;
         }
     }
 
@@ -206,7 +208,11 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
     }
 
     /**
-     * Evict least recently used cache entries if cache size exceeds limit
+     * Evict least recently used cache entries when cache size exceeds limit.
+     *
+     * LRU order is maintained by array insertion order: recordHit() moves
+     * accessed entries to the end, so the front of the array is always the
+     * least recently used — no sorting required.
      *
      * @return void
      */
@@ -215,26 +221,18 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
         $maxCacheSize = $this->config['max_size'];
 
         if (count(self::$cache) >= $maxCacheSize) {
-            // Sort by last_accessed time and remove the oldest 10%
-            uasort(self::$cache, function ($a, $b) {
-                return $a['last_accessed'] <=> $b['last_accessed'];
-            });
-
             $toRemove = (int) ceil($maxCacheSize * 0.1);
-            $removed = 0;
 
-            foreach (array_keys(self::$cache) as $key) {
-                if ($removed >= $toRemove) {
-                    break;
-                }
+            // LRU: front of array = least recently used (moved to end on access)
+            $keysToRemove = array_slice(array_keys(self::$cache), 0, $toRemove);
+            foreach ($keysToRemove as $key) {
                 $this->removeFromTableIndex($key);
                 unset(self::$cache[$key]);
-                $removed++;
             }
 
-            if ($removed > 0 && $this->config['log_enabled']) {
+            if ($toRemove > 0 && $this->config['log_enabled']) {
                 Log::debug('Query Cache: Evicted LRU entries', [
-                    'evicted_count' => $removed,
+                    'evicted_count' => $toRemove,
                     'remaining_count' => count(self::$cache)
                 ]);
             }

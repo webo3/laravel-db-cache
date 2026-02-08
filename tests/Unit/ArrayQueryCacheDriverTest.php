@@ -78,17 +78,12 @@ class ArrayQueryCacheDriverTest extends TestCase
     }
 
     #[Test]
-    public function record_hit_updates_last_accessed()
+    public function record_hit_on_existing_key_succeeds()
     {
         $this->driver->put('key1', ['data'], 'SELECT * FROM users', microtime(true));
-        $before = microtime(true);
 
-        usleep(1000); // 1ms
         $this->driver->recordHit('key1');
 
-        $after = microtime(true);
-
-        // Verify internal state through get
         $cached = $this->driver->get('key1');
         $this->assertNotNull($cached);
     }
