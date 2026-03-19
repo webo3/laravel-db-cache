@@ -78,8 +78,11 @@ return [
     | Use a string for a single connection:
     |   'connection' => 'mysql',
     |
-    | Use an array for multiple connections:
-    |   'connection' => ['mysql', 'pgsql'],
+    | Use a comma-separated string for multiple connections (env-friendly):
+    |   DB_QUERY_CACHE_CONNECTION=main,org
+    |
+    | Or use an array in PHP config:
+    |   'connection' => ['main', 'org'],
     |
     */
 

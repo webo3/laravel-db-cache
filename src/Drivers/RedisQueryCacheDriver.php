@@ -21,14 +21,21 @@ class RedisQueryCacheDriver implements QueryCacheDriver
 {
     /**
      * Redis Set key to track all cached query keys
+     * Dynamically prefixed with tenant context when set
      */
-    private const KEYS_SET = 'db_cache:keys';
+    private string $keysSet = 'db_cache:keys';
 
     /**
      * Redis Set key prefix for table-based index (inverted index)
      * Format: db_cache:table:{table_name} -> Set of query cache keys
+     * Dynamically prefixed with tenant context when set
      */
-    private const TABLE_INDEX_PREFIX = 'db_cache:table:';
+    private string $tableIndexPrefix = 'db_cache:table:';
+
+    /**
+     * Current tenant ID for cache isolation
+     */
+    private ?string $tenantId = null;
 
     /**
      * Configuration
@@ -63,6 +70,23 @@ class RedisQueryCacheDriver implements QueryCacheDriver
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function setTenantContext(string $tenantId): void
+    {
+        if ($this->tenantId === $tenantId) {
+            return;
+        }
+
+        $this->tenantId = $tenantId;
+        $this->keysSet = "db_cache:t:{$tenantId}:keys";
+        $this->tableIndexPrefix = "db_cache:t:{$tenantId}:table:";
+
+        // Flush L1 cache on tenant switch to prevent cross-tenant leakage
+        $this->requestCache = [];
+    }
+
+    /**
      * Build full Redis key with Laravel prefix
      *
      * @param string $key
@@ -73,6 +97,11 @@ class RedisQueryCacheDriver implements QueryCacheDriver
         $appName = config('app.name', 'laravel');
         $appSlug = \Illuminate\Support\Str::slug($appName, '_');
         $cachePrefix = config('cache.prefix');
+
+        if ($this->tenantId !== null) {
+            return "{$appSlug}_database_{$cachePrefix}:t:{$this->tenantId}:{$key}";
+        }
+
         return "{$appSlug}_database_{$cachePrefix}:{$key}";
     }
 
@@ -431,7 +460,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
     {
         try {
             // Add to Set using SADD (AWS/Valkey compatible)
-            $this->redis->sadd(self::KEYS_SET, $key);
+            $this->redis->sadd($this->keysSet, $key);
         } catch (\Exception $e) {
             if ($this->config['log_enabled']) {
                 Log::warning('Query Cache (Redis): Failed to add key to tracking set', [
@@ -452,7 +481,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
     {
         try {
             // Remove from Set using SREM (AWS/Valkey compatible)
-            $this->redis->srem(self::KEYS_SET, $key);
+            $this->redis->srem($this->keysSet, $key);
         } catch (\Exception $e) {
             if ($this->config['log_enabled']) {
                 Log::warning('Query Cache (Redis): Failed to remove key from tracking set', [
@@ -480,7 +509,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
             // Use pipeline to add key to all table indexes in one roundtrip
             $this->redis->pipeline(function ($pipe) use ($key, $tables) {
                 foreach ($tables as $table) {
-                    $indexKey = self::TABLE_INDEX_PREFIX . $table;
+                    $indexKey = $this->tableIndexPrefix . $table;
                     $pipe->sadd($indexKey, $key);
                 }
             });
@@ -510,7 +539,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
         try {
             // Build array of table index keys
             $indexKeys = array_map(
-                fn($table) => self::TABLE_INDEX_PREFIX . $table,
+                fn($table) => $this->tableIndexPrefix . $table,
                 $tables
             );
 
@@ -567,7 +596,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
             // Use pipeline to remove key from all table indexes
             $this->redis->pipeline(function ($pipe) use ($key, $tables) {
                 foreach ($tables as $table) {
-                    $indexKey = self::TABLE_INDEX_PREFIX . $table;
+                    $indexKey = $this->tableIndexPrefix . $table;
                     $pipe->srem($indexKey, $key);
                 }
             });
@@ -602,11 +631,11 @@ class RedisQueryCacheDriver implements QueryCacheDriver
                 foreach ($keys as $key) {
                     $fullKey = $this->buildFullKey($key);
                     $pipe->del($fullKey);
-                    $pipe->srem(self::KEYS_SET, $key);
+                    $pipe->srem($this->keysSet, $key);
 
                     // Remove from all affected table indexes
                     foreach ($affectedTables as $table) {
-                        $indexKey = self::TABLE_INDEX_PREFIX . $table;
+                        $indexKey = $this->tableIndexPrefix . $table;
                         $pipe->srem($indexKey, $key);
                     }
                 }
@@ -630,7 +659,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
     {
         try {
             // Get all members from Set using SMEMBERS (AWS/Valkey compatible)
-            $keys = $this->redis->smembers(self::KEYS_SET);
+            $keys = $this->redis->smembers($this->keysSet);
             return $keys ?: [];
         } catch (\Exception $e) {
             if ($this->config['log_enabled']) {
@@ -661,7 +690,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
 
         // Clear the tracking Set itself
         try {
-            $this->redis->del(self::KEYS_SET);
+            $this->redis->del($this->keysSet);
         } catch (\Exception $e) {
             if ($this->config['log_enabled']) {
                 Log::warning('Query Cache (Redis): Failed to clear tracking set', [
@@ -686,7 +715,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
         try {
             // Use SCAN to find all table index keys (AWS/Valkey compatible)
             $cursor = '0';
-            $pattern = self::TABLE_INDEX_PREFIX . '*';
+            $pattern = $this->tableIndexPrefix . '*';
             $keysToDelete = [];
 
             do {
@@ -824,7 +853,7 @@ class RedisQueryCacheDriver implements QueryCacheDriver
                 foreach ($keys as $key) {
                     $fullKey = $this->buildFullKey($key);
                     $pipe->del($fullKey);
-                    $pipe->srem(self::KEYS_SET, $key);
+                    $pipe->srem($this->keysSet, $key);
                 }
             });
         } catch (\Exception $e) {

@@ -76,4 +76,15 @@ interface QueryCacheDriver
      * @return array
      */
     public function getAllKeys(): array;
+
+    /**
+     * Set the tenant context for cache isolation
+     *
+     * When set, all cache keys are namespaced by tenant to prevent
+     * cross-tenant data leakage in multi-tenant applications.
+     *
+     * @param string $tenantId
+     * @return void
+     */
+    public function setTenantContext(string $tenantId): void;
 }

@@ -237,6 +237,20 @@ trait CachesQueries
     }
 
     /**
+     * Set the tenant context for cache isolation.
+     *
+     * Delegates to the cache driver to namespace all cache keys by tenant,
+     * preventing cross-tenant data leakage.
+     *
+     * @param string $tenantId
+     * @return void
+     */
+    public function setTenantContext(string $tenantId): void
+    {
+        $this->cacheDriver->setTenantContext($tenantId);
+    }
+
+    /**
      * Check if caching is enabled
      *
      * @return bool

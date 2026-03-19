@@ -18,4 +18,6 @@ interface CachedConnection
     public function enableQueryCache(): void;
 
     public function disableQueryCache(): void;
+
+    public function setTenantContext(string $tenantId): void;
 }

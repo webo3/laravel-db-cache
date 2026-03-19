@@ -84,6 +84,31 @@ class QueryCacheServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function boot_parses_comma_separated_connection_string()
+    {
+        config([
+            'db-cache.enabled' => true,
+            'db-cache.driver' => 'array',
+            'db-cache.ttl' => 180,
+            'db-cache.max_size' => 1000,
+            'db-cache.log_enabled' => false,
+            'db-cache.connection' => 'mysql, pgsql, sqlite',
+            'db-cache.redis_connection' => 'db_cache',
+        ]);
+
+        $provider = app()->getProvider(\webO3\LaravelDbCache\QueryCacheServiceProvider::class);
+        $provider->boot();
+
+        // Verify config was injected into all connections from comma-separated string
+        foreach (['mysql', 'pgsql', 'sqlite'] as $conn) {
+            $dbConfig = config("database.connections.{$conn}.db_cache");
+            $this->assertNotNull($dbConfig, "db_cache config not injected for {$conn}");
+            $this->assertTrue($dbConfig['enabled'], "enabled not set for {$conn}");
+            $this->assertEquals('array', $dbConfig['driver'], "driver not set for {$conn}");
+        }
+    }
+
+    #[Test]
     public function boot_does_not_inject_config_when_disabled()
     {
         // Remove any existing db_cache config

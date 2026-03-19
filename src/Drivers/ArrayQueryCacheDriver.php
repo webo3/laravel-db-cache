@@ -28,6 +28,11 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
     private static array $tableIndex = [];
 
     /**
+     * Current tenant ID for cache isolation
+     */
+    private ?string $tenantId = null;
+
+    /**
      * Configuration
      */
     private array $config;
@@ -205,6 +210,18 @@ class ArrayQueryCacheDriver implements QueryCacheDriver
     public function getAllKeys(): array
     {
         return array_keys(self::$cache);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTenantContext(string $tenantId): void
+    {
+        if ($this->tenantId !== $tenantId) {
+            self::$cache = [];
+            self::$tableIndex = [];
+            $this->tenantId = $tenantId;
+        }
     }
 
     /**

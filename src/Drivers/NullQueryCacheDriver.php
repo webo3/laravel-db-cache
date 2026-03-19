@@ -88,4 +88,12 @@ class NullQueryCacheDriver implements QueryCacheDriver
     {
         return [];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setTenantContext(string $tenantId): void
+    {
+        // No-op
+    }
 }

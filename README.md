@@ -17,6 +17,7 @@ This package intercepts SQL queries at the connection level, automatically cachi
   - AWS ElastiCache / Valkey compatible (uses Sets instead of KEYS/SCAN)
   - Automatic igbinary serialization and gzip compression
 - **LRU eviction** for the array driver when max size is reached
+- **Multi-tenant support** - `setTenantContext()` namespaces cache keys per tenant, preventing cross-tenant data leakage
 - **Cursor queries bypassed** - `cursor()` queries are never cached (preserving memory-efficient streaming)
 - **Monitoring middleware** included for logging cache statistics
 
@@ -203,14 +204,83 @@ The middleware only logs when `DB_QUERY_CACHE_LOG_ENABLED=true`. Log entries inc
 
 ## Multi-Connection Support
 
-You can enable query caching on multiple database connections simultaneously. In your `config/db-cache.php` (or via environment), pass an array of connection names:
+You can enable query caching on multiple database connections simultaneously. Use a comma-separated string in your `.env`:
+
+```env
+DB_QUERY_CACHE_CONNECTION=main,org
+```
+
+Or use an array in `config/db-cache.php`:
 
 ```php
-// config/db-cache.php
-'connection' => ['mysql', 'pgsql'],
+'connection' => ['main', 'org'],
 ```
 
 Each connection will use the same cache driver and TTL settings. The factory automatically creates the appropriate cached connection class based on the driver (`mysql`, `pgsql`, or `sqlite`).
+
+## Multi-Tenant Support
+
+For multi-tenant applications where multiple tenants share the same database connection, the package provides tenant-aware cache isolation via `setTenantContext()`. This namespaces all cache keys by tenant ID, preventing cross-tenant data leakage.
+
+### Usage
+
+Call `setTenantContext()` on the connection after resolving the tenant — typically in your tenant database resolver or middleware:
+
+```php
+$connection = DB::connection('org');
+
+if (method_exists($connection, 'setTenantContext')) {
+    $connection->setTenantContext((string) $org->id);
+}
+```
+
+Once set, all cache operations on that connection are scoped to the tenant:
+
+- **Cache keys** are prefixed with the tenant ID (e.g. `app_database_cache:t:42:abc123`)
+- **Tracking sets** are tenant-scoped (e.g. `db_cache:t:42:keys`)
+- **Table indexes** are tenant-scoped (e.g. `db_cache:t:42:table:users`)
+- **Cache invalidation** only affects the current tenant's cached queries
+
+### How it works per driver
+
+| Driver | Behavior |
+|---|---|
+| **Redis** | Keys, tracking sets, and table indexes are namespaced by tenant. L1 (in-memory) cache is flushed on tenant switch. Each tenant's data is fully isolated in Redis. |
+| **Array** | Cache is flushed when switching between tenants (since the static array is shared). Within a single request serving one tenant, caching works normally. |
+| **Null** | No-op (accepts the call, does nothing). |
+
+### Connections without tenant context
+
+Connections that don't call `setTenantContext()` (e.g. a shared `main` connection) work exactly as before — no tenant prefix is applied. This allows you to cache both shared and tenant-specific connections simultaneously:
+
+```env
+DB_QUERY_CACHE_CONNECTION=main,org
+```
+
+The `main` connection caches globally, while the `org` connection caches per-tenant after `setTenantContext()` is called.
+
+## Artisan Command
+
+Clear the query cache from the command line:
+
+```bash
+# Clear all cached connections
+php artisan db-cache:clear
+
+# Clear a specific connection
+php artisan db-cache:clear --connection=org
+
+# Clear a specific tenant's cache
+php artisan db-cache:clear --connection=org --tenant=42
+
+# Clear multiple connections (comma-separated)
+php artisan db-cache:clear --connection=main,org
+```
+
+| Option | Description |
+|---|---|
+| `--connection` | Connection name(s) to clear. Defaults to all connections listed in `DB_QUERY_CACHE_CONNECTION`. |
+| `--tenant` | Tenant ID to scope the clear to. Sets the tenant context before flushing, so only that tenant's cache keys are removed (redis driver). |
 
 ## Programmatic API
 
@@ -279,6 +349,7 @@ class MyCustomDriver implements QueryCacheDriver
     public function getStats(): array { /* ... */ }
     public function recordHit(string $key): void { /* ... */ }
     public function getAllKeys(): array { /* ... */ }
+    public function setTenantContext(string $tenantId): void { /* ... */ }
 }
 ```
 

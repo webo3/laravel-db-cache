@@ -4,6 +4,7 @@ namespace webO3\LaravelDbCache;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
+use webO3\LaravelDbCache\Console\ClearQueryCacheCommand;
 
 class QueryCacheServiceProvider extends ServiceProvider
 {
@@ -30,11 +31,16 @@ class QueryCacheServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../config/db-cache.php' => config_path('db-cache.php'),
             ], 'db-cache-config');
+
+            $this->commands([
+                ClearQueryCacheCommand::class,
+            ]);
         }
 
         // Inject db_cache config into the database connection config
         if (config('db-cache.enabled', false)) {
-            $connections = Arr::wrap(config('db-cache.connection', 'mysql'));
+            $raw = config('db-cache.connection', 'mysql');
+            $connections = is_string($raw) ? array_map('trim', explode(',', $raw)) : Arr::wrap($raw);
 
             foreach ($connections as $connection) {
                 config([
