@@ -16,7 +16,14 @@ class SqlTableExtractor
         . '|TRUNCATE(?:\s+TABLE)?'
         . '|ALTER\s+TABLE'
         . '|DROP\s+TABLE(?:\s+IF\s+EXISTS)?'
+        . '|RENAME\s+TABLE'
         . ')\s+[`"\[]?([a-zA-Z0-9_]+)[`"\]]?/i';
+
+    /**
+     * Pattern to extract all table pairs from RENAME TABLE statements.
+     * Matches each "source TO target" pair, including comma-separated ones.
+     */
+    private const RENAME_PAIR_PATTERN = '/[`"\[]?([a-zA-Z0-9_]+)[`"\]]?\s+TO\s+[`"\[]?([a-zA-Z0-9_]+)[`"\]]?/i';
 
     /**
      * Per-request cache of extracted tables keyed by SQL string
@@ -40,7 +47,15 @@ class SqlTableExtractor
 
         preg_match_all(self::PATTERN, $sql, $matches);
 
-        $result = array_values(array_unique($matches[1]));
+        $tables = $matches[1];
+
+        // For RENAME TABLE statements, extract all source/target table pairs
+        if (preg_match('/^\s*RENAME\s+TABLE\b/i', $sql)) {
+            preg_match_all(self::RENAME_PAIR_PATTERN, $sql, $renameMatches);
+            $tables = array_merge($renameMatches[1], $renameMatches[2]);
+        }
+
+        $result = array_values(array_unique($tables));
         self::$cache[$sql] = $result;
 
         return $result;

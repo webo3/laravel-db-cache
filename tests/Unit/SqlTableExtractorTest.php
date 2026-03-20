@@ -235,4 +235,38 @@ class SqlTableExtractorTest extends TestCase
         $tables = SqlTableExtractor::extract('DELETE FROM [users] WHERE id = 1');
         $this->assertContains('users', $tables);
     }
+
+    // ===================================
+    // RENAME TABLE support
+    // ===================================
+
+    #[Test]
+    public function it_extracts_both_tables_from_rename()
+    {
+        $tables = SqlTableExtractor::extract('RENAME TABLE users TO customers');
+        $this->assertContains('users', $tables);
+        $this->assertContains('customers', $tables);
+        $this->assertCount(2, $tables);
+    }
+
+    #[Test]
+    public function it_extracts_tables_from_rename_with_backticks()
+    {
+        $tables = SqlTableExtractor::extract('RENAME TABLE `users` TO `customers`');
+        $this->assertContains('users', $tables);
+        $this->assertContains('customers', $tables);
+    }
+
+    #[Test]
+    public function it_extracts_all_tables_from_multi_rename()
+    {
+        $tables = SqlTableExtractor::extract(
+            'RENAME TABLE users TO customers, orders TO purchases'
+        );
+        $this->assertContains('users', $tables);
+        $this->assertContains('customers', $tables);
+        $this->assertContains('orders', $tables);
+        $this->assertContains('purchases', $tables);
+        $this->assertCount(4, $tables);
+    }
 }

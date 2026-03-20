@@ -199,7 +199,7 @@ trait CachesQueries
      */
     private function getQueryType(string $sql): string
     {
-        if (preg_match('/^\s*(SELECT|INSERT|UPDATE|DELETE|TRUNCATE|REPLACE|ALTER|DROP|CREATE|SHOW|DESCRIBE|EXPLAIN)\b/i', trim($sql), $matches)) {
+        if (preg_match('/^\s*(SELECT|INSERT|UPDATE|DELETE|TRUNCATE|REPLACE|ALTER|DROP|CREATE|RENAME|SHOW|DESCRIBE|EXPLAIN)\b/i', trim($sql), $matches)) {
             return strtoupper($matches[1]);
         }
 
@@ -214,7 +214,7 @@ trait CachesQueries
      */
     private function isMutationQuery(string $sql): bool
     {
-        return preg_match('/^\s*(INSERT|UPDATE|DELETE|TRUNCATE|ALTER|DROP|CREATE|REPLACE)\b/i', trim($sql)) === 1;
+        return preg_match('/^\s*(INSERT|UPDATE|DELETE|TRUNCATE|ALTER|DROP|CREATE|RENAME|REPLACE)\b/i', trim($sql)) === 1;
     }
 
     /**
