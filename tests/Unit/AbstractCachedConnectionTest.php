@@ -635,4 +635,24 @@ abstract class AbstractCachedConnectionTest extends TestCase
         // Assert - Should be using the expected driver
         $this->assertEquals($this->getDriverName(), $stats['driver']);
     }
+
+    // ===================================
+    // SCHEMA QUERY EXCLUSION TESTS
+    // ===================================
+
+    public function test_information_schema_queries_are_not_cached()
+    {
+        // Act - Execute an information_schema query (may fail on SQLite, that's OK)
+        try {
+            $this->getCachedConnection()->select('SELECT * FROM information_schema.tables WHERE table_schema = ?', ['test']);
+        } catch (\Exception $e) {
+            // Expected on SQLite which has no information_schema
+        }
+
+        $stats = $this->getCachedConnection()->getCacheStats();
+
+        // Assert - information_schema queries should never enter the cache
+        $this->assertEquals(0, $stats['cached_queries_count']);
+        $this->assertEquals(0, $stats['total_cache_hits']);
+    }
 }

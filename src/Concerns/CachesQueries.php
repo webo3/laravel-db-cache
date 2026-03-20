@@ -94,6 +94,11 @@ trait CachesQueries
 
         // Handle SELECT queries with caching
         if ($queryType === 'SELECT') {
+            // Never cache queries against system/metadata tables
+            if ($this->isSchemaQuery($query)) {
+                return parent::run($query, $bindings, $callback);
+            }
+
             return $this->runSelectWithCache($query, $bindings, $callback);
         }
 
@@ -215,6 +220,17 @@ trait CachesQueries
     private function isMutationQuery(string $sql): bool
     {
         return preg_match('/^\s*(INSERT|UPDATE|DELETE|TRUNCATE|ALTER|DROP|CREATE|RENAME|REPLACE)\b/i', trim($sql)) === 1;
+    }
+
+    /**
+     * Check if query targets system/metadata tables that should never be cached
+     *
+     * @param string $sql
+     * @return bool
+     */
+    private function isSchemaQuery(string $sql): bool
+    {
+        return preg_match('/\binformation_schema\b/i', $sql) === 1;
     }
 
     /**
