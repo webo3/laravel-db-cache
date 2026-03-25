@@ -57,12 +57,12 @@ trait CachesQueries
      * @param  bool  $useReadPdo
      * @return \Generator
      */
-    public function cursor($query, $bindings = [], $useReadPdo = true)
+    public function cursor($query, $bindings = [], $useReadPdo = true, array $fetchUsing = [])
     {
         $this->inCursorQuery = true;
 
         try {
-            yield from parent::cursor($query, $bindings, $useReadPdo);
+            yield from parent::cursor($query, $bindings, $useReadPdo, $fetchUsing);
         } finally {
             $this->inCursorQuery = false;
         }
